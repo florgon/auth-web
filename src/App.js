@@ -70,15 +70,17 @@ function Authentication(){
   }, [applyAccessToken, setSignFormError, setIsLoading, signFormLogin, signFormPassword]);
 
   const onSignup = useCallback(() => {
+    
     if (signFormUsername === "") return setSignFormError("Please enter username!");
     if (signFormPassword === "") return setSignFormError("Please enter password!");
     if (signFormEmail === "") return setSignFormError("Please enter email!");
     if (signFormPassword.length <= 5) return setSignFormError("Password too short!");
     if (signFormUsername.length <= 4) return setSignFormError("Username too short!");
     if (signFormPassword !== signFormPasswordConfirmation) return setSignFormError("Passwords not same!");
-    console.log(signFormPasswordConfirmation)
+
     setSignFormError(undefined);
     setIsLoading(true);
+    
     authMethodSignup(signFormUsername, signFormEmail, signFormPassword, (_, response) => {
       applyAccessToken(response["success"]["token"]);
       window.location.href = AUTH_DEFAULT_REDIRECT_URL;
@@ -99,7 +101,7 @@ function Authentication(){
       }
       setSignFormError("Failed to sign-in because of unexpected error!");
     })
-  }, [setCookie, setSignFormError, setIsLoading, signFormLogin, signFormPassword]);
+  }, [applyAccessToken, setSignFormError, setIsLoading, signFormLogin, signFormPassword, signFormPasswordConfirmation]);
 
   /// Requesting user.
   useEffect(() => {

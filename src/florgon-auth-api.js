@@ -6,7 +6,7 @@
     Used for working with Florgon auth API.
 
     Current SDK version:
-        v1.0
+        v1.0.1
     Latest auth API version: 
         v1.0.1
 
@@ -54,15 +54,15 @@ const authApiErrorCode = {
 
 // Methods wrapper.
 const authMethodUser = (accessToken, onSuccess=undefined, onError=undefined) => authApiRequest("user", "", accessToken, onSuccess, onError);
-const authMethodSignin = (login, password, onSuccess=undefined, onError=undefined) => authApiRequest("signin", "login=" + login + "&password=" + password, onSuccess, onError);
-const authMethodSignup = (username, email, password, onSuccess=undefined, onError=undefined) => authApiRequest("signup", "username=" + username + "&email=" + email + "&password=" + password, onSuccess, onError);
+const authMethodSignin = (login, password, onSuccess=undefined, onError=undefined) => authApiRequest("signin", "login=" + login + "&password=" + password, "", onSuccess, onError);
+const authMethodSignup = (username, email, password, onSuccess=undefined, onError=undefined) => authApiRequest("signup", "username=" + username + "&email=" + email + "&password=" + password, "", onSuccess, onError);
 
 function authApiRequest(method, params="", accessToken="", onSuccess=undefined, onError=undefined){
     /// @description Makes request to API method.
     const onErrorHandler = function(raw, result){
         /// @description Error response handler.
         if (onError) onError(raw, result);
-        if ("v" in result){
+        if (result && "v" in result){
             if (result["v"] != AUTH_API_EXPECTED_VERSION){
                 console.warn("[Florgon auth API] Working with unexpected API version! Expected version: " + AUTH_API_EXPECTED_VERSION + ", but got: " + result["v"])
             }
@@ -72,7 +72,7 @@ function authApiRequest(method, params="", accessToken="", onSuccess=undefined, 
     const onSuccessHandler = function(raw, result){
         /// @description Success response handler.
         if (onSuccess) onSuccess(raw, result);
-        if ("v" in result){
+        if (result && "v" in result){
             if (result["v"] != AUTH_API_EXPECTED_VERSION){
                 console.warn("[Florgon auth API] Working with unexpected API version! Expected version: " + AUTH_API_EXPECTED_VERSION + ", but got: " + result["v"])
             }
@@ -120,10 +120,8 @@ function _buildRequestURL(apiMethod, apiParams){
 function _getHeaders(accessToken){
     /// @description Returns headers object for request.
     let headers = AUTH_API_DEFAULT_HEADERS;
-    console.log(accessToken)
     if (accessToken){
         headers["Authorization"] = accessToken;
-        
     }
     return headers;
 }

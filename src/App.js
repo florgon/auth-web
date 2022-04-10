@@ -1,10 +1,10 @@
 // Libraries.
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useCookies } from 'react-cookie';
 import { Container, Row, Col, Card, InputGroup, FormControl, Button} from 'react-bootstrap';
 
 // Auth API.
-import { authMethodUser, authApiErrorCode, authApiGetErrorMessageFromCode } from './florgon-auth-api';
+import { authMethodUser, authMethodSignin, authMethodSignup, authApiErrorCode, authApiGetErrorMessageFromCode } from './florgon-auth-api';
 
 
 // Where to redirect when redirect param is not passed.
@@ -21,6 +21,50 @@ function Authentication(){
   const [error, setError] = useState(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [signMethod, setSignMethod] = useState("signup");
+  const [signFormError, setSignFormError] = useState(undefined);
+  const [signFormLogin, setSignFormLogin] = useState("");
+  const [signFormUsername, setSignFormUsername] = useState("");
+  const [signFormEmail, setSignFormEmail] = useState("");
+  const [signFormPassword, setSignFormPassword] = useState("");
+  const [signFormPasswordConfirmation, setSignFormPasswordConfirmation] = useState("");
+
+  const onSignin = useCallback(() => {
+    if (signFormLogin === ""){
+      setSignFormError("Please enter username or email!");
+      return;
+    }
+    if (signFormPassword === ""){
+      setSignFormError("Please enter password!");
+      return;
+    }
+    if (signFormPassword.length <= 5){
+      setSignFormError("Password too short!");
+      return;
+    }
+
+    setSignFormError(undefined);
+    setIsLoading(true);
+    authMethodSignin(signFormLogin, signFormPassword, (raw, response) => {
+      setCookie("access_token", response["success"]["token"]);
+      window.location.href = AUTH_DEFAULT_REDIRECT_URL;
+    }, (raw, error) => {
+      setIsLoading(false);
+      if (error && "error" in error){
+        const error_code = error["error"]["code"];
+        if (error_code == authApiErrorCode.AUTH_INVALID_CREDENTIALS){
+          setSignFormError("Invalid credentials to authenticate!");
+          return;
+        }
+        setSignFormError("Failed to sign-in because of error: " + authApiGetErrorMessageFromCode(error_code));
+        return;
+      }
+      setSignFormError("Failed to sign-in because of unexpected error!");
+    })
+  }, [setCookie, setSignFormError, setIsLoading, signFormLogin, signFormPassword]);
+
+  const onSignup = useCallback(() => {
+
+  }, []);
 
   /// Requesting user.
   useEffect(() => {
@@ -49,20 +93,12 @@ function Authentication(){
   </div>);
 
   /// Other messages.
-  if (isLoading) return <div>Loading account information...</div>;
+  if (isLoading) return <div>Loading...</div>;
   
   return (<div>
-    <Card className="shadow-sm mb-5" border="warning">
-      <Card.Body>
-        <Card.Title as="h2">Authentication.</Card.Title>
-        <Card.Text>
-          <span className="mb-3 mt-3">In order to continue, you should authenticate in your Florgon account.</span>
-        </Card.Text>
-      </Card.Body>
-    </Card>
     <Container fluid>
       <Row>
-      {signMethod === "signin" && <Col>
+        {signMethod === "signin" && <Col>
           <Card className="shadow">
             <Card.Body>
               <Card.Title as="h2">Sign in.</Card.Title>
@@ -71,33 +107,18 @@ function Authentication(){
               </Card.Text>
 
               <InputGroup className="mb-2 shadow-sm">
-                <FormControl
-                  placeholder="Username or email"
-                  aria-label="Username or email"
-                  type="text"
-                />
+                <FormControl placeholder="Username or email" aria-label="Username or email" type="text" value={signFormLogin} onChange={(e) => {setSignFormLogin(e.target.value)}}/>
               </InputGroup>
               <InputGroup className="mb-4 shadow-sm">
-                <FormControl
-                  placeholder="Password"
-                  aria-label="Password"
-                  type="password"
-                />
+                <FormControl placeholder="Password" aria-label="Password" type="password" value={signFormPassword} onChange={(e) => {setSignFormPassword(e.target.value)}}/>
               </InputGroup>
               
+              {signFormError && (<p className="text-danger">{signFormError}</p>)}
               <Row>
-                <Col>
-                  <Button variant="warning" className="shadow-sm text-nowrap mb-1" disabled>Forgot password?</Button>
-                </Col>
-                <Col>
-                  <Button variant="secondary" className="shadow-sm text-nowrap mb-1" onClick={() => setSignMethod("signup")}>No account yet?</Button>
-                </Col>
-                <Col>
-                  <Button variant="primary" className="shadow-sm text-nowrap" disabled>Sign in!</Button>
-                </Col>
+                <Col><Button variant="warning" className="shadow-sm text-nowrap mb-1" disabled>Forgot password?</Button></Col>
+                <Col><Button variant="secondary" className="shadow-sm text-nowrap mb-1" onClick={() => setSignMethod("signup")}>No account yet?</Button></Col>
+                <Col><Button variant="primary" className="shadow-sm text-nowrap" onClick={onSignin}>Sign in!</Button> </Col>
               </Row>
-
-
             </Card.Body>
           </Card>
         </Col>}
@@ -110,39 +131,20 @@ function Authentication(){
               </Card.Text>
 
               <InputGroup className="mb-2 shadow-sm">
-                <FormControl
-                  placeholder="Username"
-                  aria-label="Username"
-                  type="text"
-                />
+                <FormControl placeholder="Username" aria-label="Username" type="text"/>
               </InputGroup>
               <InputGroup className="mb-2 shadow-sm">
-                <FormControl
-                  placeholder="Email"
-                  aria-label="Email"
-                  type="email"
-                />
+                <FormControl placeholder="Email" aria-label="Email" type="email"/>
               </InputGroup>
               <InputGroup className="mb-4 shadow-sm">
-                <FormControl
-                  placeholder="Password"
-                  aria-label="Password"
-                  type="password"
-                />
-                <FormControl
-                  placeholder="Password confirmation"
-                  aria-label="Password confirmation"
-                  type="password"
-                />
+                <FormControl placeholder="Password" aria-label="Password" type="password"/>
+                <FormControl placeholder="Password confirmation" aria-label="Password confirmation" type="password"/>
               </InputGroup>
               
+              {signFormError && (<p className="text-danger">{signFormError}</p>)}
               <Row>
-                <Col>
-                  <Button variant="primary" className="shadow-sm text-nowrap mb-1" href="https://florgon.space" disabled>Sign up!</Button>
-                </Col>
-                <Col>
-                  <Button variant="secondary" className="shadow-sm text-nowrap" onClick={() => setSignMethod("signin")}>Already have account?</Button>
-                </Col>
+                <Col><Button variant="primary" className="shadow-sm text-nowrap mb-1" onClick={onSignup}>Sign up!</Button></Col>
+                <Col><Button variant="secondary" className="shadow-sm text-nowrap" onClick={() => setSignMethod("signin")}>Already have account?</Button></Col>
               </Row>
 
             </Card.Body>
@@ -162,6 +164,14 @@ function App() {
         <Row>
           <Col className="d-flex justify-content-center">
             <div className="text-center mt-5">
+              <Card className="shadow-sm mb-5" border="warning">
+                <Card.Body>
+                  <Card.Title as="h2">Authentication.</Card.Title>
+                  <Card.Text>
+                    <span className="mb-3 mt-3">In order to continue, you should authenticate in your Florgon account.</span>
+                  </Card.Text>
+                </Card.Body>
+              </Card>
               <Authentication/>
             </div>
           </Col>

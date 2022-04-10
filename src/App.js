@@ -28,6 +28,13 @@ function Authentication(){
   const [signFormPassword, setSignFormPassword] = useState("");
   const [signFormPasswordConfirmation, setSignFormPasswordConfirmation] = useState("");
 
+  const applyAccessToken = function(accessToken){
+    setCookie("access_token", accessToken, {
+      "domain": ".florgon.space",
+      "path": "/"
+    });
+  }
+
   const onSignin = useCallback(() => {
     if (signFormLogin === ""){
       setSignFormError("Please enter username or email!");
@@ -45,10 +52,7 @@ function Authentication(){
     setSignFormError(undefined);
     setIsLoading(true);
     authMethodSignin(signFormLogin, signFormPassword, (_, response) => {
-      setCookie("access_token", response["success"]["token"], {
-        "domain": ".florgon.space",
-        "path": "/"
-      });
+      applyAccessToken(response["success"]["token"]);
       window.location.href = AUTH_DEFAULT_REDIRECT_URL;
     }, (_, error) => {
       setIsLoading(false);
@@ -63,7 +67,7 @@ function Authentication(){
       }
       setSignFormError("Failed to sign-in because of unexpected error!");
     })
-  }, [setCookie, setSignFormError, setIsLoading, signFormLogin, signFormPassword]);
+  }, [applyAccessToken, setSignFormError, setIsLoading, signFormLogin, signFormPassword]);
 
   const onSignup = useCallback(() => {
     if (signFormUsername === "") return setSignFormError("Please enter username!");
@@ -76,7 +80,7 @@ function Authentication(){
     setSignFormError(undefined);
     setIsLoading(true);
     authMethodSignup(signFormUsername, signFormEmail, signFormPassword, (_, response) => {
-      setCookie("access_token", response["success"]["token"]);
+      applyAccessToken(response["success"]["token"]);
       window.location.href = AUTH_DEFAULT_REDIRECT_URL;
     }, (_, error) => {
       setIsLoading(false);

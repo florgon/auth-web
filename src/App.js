@@ -1,7 +1,7 @@
 // Libraries.
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCookies } from 'react-cookie';
-import { Container, Row, Col} from 'react-bootstrap';
+import { Container, Row, Col, Card, InputGroup, FormControl, Button} from 'react-bootstrap';
 
 // Auth API.
 import { authMethodUser, authApiErrorCode, authApiGetErrorMessageFromCode } from './florgon-auth-api';
@@ -20,10 +20,11 @@ function Authentication(){
   // States.
   const [error, setError] = useState(undefined);
   const [isLoading, setIsLoading] = useState(true);
+  const [signMethod, setSignMethod] = useState("signup");
 
   /// Requesting user.
   useEffect(() => {
-    authMethodUser(cookies["access_token"], (_, response) => {
+    authMethodUser(cookies["access_token"], () => {
       window.location.href = AUTH_DEFAULT_REDIRECT_URL;
     }, (_, error) => {
       setIsLoading(false);
@@ -50,7 +51,107 @@ function Authentication(){
   /// Other messages.
   if (isLoading) return <div>Loading account information...</div>;
   
-  return (<div>Auth</div>);
+  return (<div>
+    <Card className="shadow-sm mb-5" border="warning">
+      <Card.Body>
+        <Card.Title as="h2">Authentication.</Card.Title>
+        <Card.Text>
+          <span className="mb-3 mt-3">In order to continue, you should authenticate in your Florgon account.</span>
+        </Card.Text>
+      </Card.Body>
+    </Card>
+    <Container fluid>
+      <Row>
+      {signMethod === "signin" && <Col>
+          <Card className="shadow">
+            <Card.Body>
+              <Card.Title as="h2">Sign in.</Card.Title>
+              <Card.Text>
+                <span className="mb-3 mt-3">Already have account? Just sign-in using your credentials.</span>
+              </Card.Text>
+
+              <InputGroup className="mb-2 shadow-sm">
+                <FormControl
+                  placeholder="Username or email"
+                  aria-label="Username or email"
+                  type="text"
+                />
+              </InputGroup>
+              <InputGroup className="mb-4 shadow-sm">
+                <FormControl
+                  placeholder="Password"
+                  aria-label="Password"
+                  type="password"
+                />
+              </InputGroup>
+              
+              <Row>
+                <Col>
+                  <Button variant="warning" className="shadow-sm text-nowrap mb-1" disabled>Forgot password?</Button>
+                </Col>
+                <Col>
+                  <Button variant="secondary" className="shadow-sm text-nowrap mb-1" onClick={() => setSignMethod("signup")}>No account yet?</Button>
+                </Col>
+                <Col>
+                  <Button variant="primary" className="shadow-sm text-nowrap" disabled>Sign in!</Button>
+                </Col>
+              </Row>
+
+
+            </Card.Body>
+          </Card>
+        </Col>}
+        {signMethod === "signup" && <Col>
+          <Card className="shadow">
+            <Card.Body>
+              <Card.Title as="h2">Sign up.</Card.Title>
+              <Card.Text>
+                <span className="mb-3 mt-3">No account yet? Just create new!</span>
+              </Card.Text>
+
+              <InputGroup className="mb-2 shadow-sm">
+                <FormControl
+                  placeholder="Username"
+                  aria-label="Username"
+                  type="text"
+                />
+              </InputGroup>
+              <InputGroup className="mb-2 shadow-sm">
+                <FormControl
+                  placeholder="Email"
+                  aria-label="Email"
+                  type="email"
+                />
+              </InputGroup>
+              <InputGroup className="mb-4 shadow-sm">
+                <FormControl
+                  placeholder="Password"
+                  aria-label="Password"
+                  type="password"
+                />
+                <FormControl
+                  placeholder="Password confirmation"
+                  aria-label="Password confirmation"
+                  type="password"
+                />
+              </InputGroup>
+              
+              <Row>
+                <Col>
+                  <Button variant="primary" className="shadow-sm text-nowrap mb-1" href="https://florgon.space" disabled>Sign up!</Button>
+                </Col>
+                <Col>
+                  <Button variant="secondary" className="shadow-sm text-nowrap" onClick={() => setSignMethod("signin")}>Already have account?</Button>
+                </Col>
+              </Row>
+
+            </Card.Body>
+          </Card>
+        </Col>}
+      </Row>
+    </Container>
+
+  </div>);
 }
 
 function App() {

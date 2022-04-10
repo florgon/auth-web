@@ -45,7 +45,10 @@ function Authentication(){
     setSignFormError(undefined);
     setIsLoading(true);
     authMethodSignin(signFormLogin, signFormPassword, (_, response) => {
-      setCookie("access_token", response["success"]["token"]);
+      setCookie("access_token", response["success"]["token"], {
+        "domain": ".florgon.space",
+        "path": "/"
+      });
       window.location.href = AUTH_DEFAULT_REDIRECT_URL;
     }, (_, error) => {
       setIsLoading(false);

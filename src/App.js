@@ -44,10 +44,10 @@ function Authentication(){
 
     setSignFormError(undefined);
     setIsLoading(true);
-    authMethodSignin(signFormLogin, signFormPassword, (raw, response) => {
+    authMethodSignin(signFormLogin, signFormPassword, (_, response) => {
       setCookie("access_token", response["success"]["token"]);
       window.location.href = AUTH_DEFAULT_REDIRECT_URL;
-    }, (raw, error) => {
+    }, (_, error) => {
       setIsLoading(false);
       if (error && "error" in error){
         const error_code = error["error"]["code"];
@@ -63,8 +63,36 @@ function Authentication(){
   }, [setCookie, setSignFormError, setIsLoading, signFormLogin, signFormPassword]);
 
   const onSignup = useCallback(() => {
-
-  }, []);
+    if (signFormUsername === "") return setSignFormError("Please enter username!");
+    if (signFormPassword === "") return setSignFormError("Please enter password!");
+    if (signFormEmail === "") return setSignFormError("Please enter email!");
+    if (signFormPassword.length <= 5) return setSignFormError("Password too short!");
+    if (signFormUsername.length <= 4) return setSignFormError("Username too short!");
+    if (signFormPassword !== signFormPasswordConfirmation) return setSignFormError("Passwords not same!");
+    console.log(signFormPasswordConfirmation)
+    setSignFormError(undefined);
+    setIsLoading(true);
+    authMethodSignup(signFormUsername, signFormEmail, signFormPassword, (_, response) => {
+      setCookie("access_token", response["success"]["token"]);
+      window.location.href = AUTH_DEFAULT_REDIRECT_URL;
+    }, (_, error) => {
+      setIsLoading(false);
+      if (error && "error" in error){
+        const error_code = error["error"]["code"];
+        if (error_code == authApiErrorCode.AUTH_EMAIL_TAKEN){
+          return setSignFormError("Given email is already taken!");
+        }
+        if (error_code == authApiErrorCode.AUTH_USERNAME_TAKEN){
+          return setSignFormError("Given username is already taken!");
+        }
+        if (error_code == authApiErrorCode.AUTH_EMAIL_INVALID){
+          return setSignFormError("Invalid email!");
+        }
+        return setSignFormError("Failed to sign-in because of error: " + authApiGetErrorMessageFromCode(error_code));
+      }
+      setSignFormError("Failed to sign-in because of unexpected error!");
+    })
+  }, [setCookie, setSignFormError, setIsLoading, signFormLogin, signFormPassword]);
 
   /// Requesting user.
   useEffect(() => {
@@ -131,14 +159,14 @@ function Authentication(){
               </Card.Text>
 
               <InputGroup className="mb-2 shadow-sm">
-                <FormControl placeholder="Username" aria-label="Username" type="text"/>
+                <FormControl placeholder="Username" aria-label="Username" type="text" value={signFormUsername} onChange={(e) => {setSignFormUsername(e.target.value)}}/>
               </InputGroup>
               <InputGroup className="mb-2 shadow-sm">
-                <FormControl placeholder="Email" aria-label="Email" type="email"/>
+                <FormControl placeholder="Email" aria-label="Email" type="email" value={signFormEmail} onChange={(e) => {setSignFormEmail(e.target.value)}}/>
               </InputGroup>
               <InputGroup className="mb-4 shadow-sm">
-                <FormControl placeholder="Password" aria-label="Password" type="password"/>
-                <FormControl placeholder="Password confirmation" aria-label="Password confirmation" type="password"/>
+                <FormControl placeholder="Password" aria-label="Password" type="password" value={signFormPassword} onChange={(e) => {setSignFormPassword(e.target.value)}}/>
+                <FormControl placeholder="Password confirmation" aria-label="Password confirmation" type="password" value={signFormPasswordConfirmation} onChange={(e) => {setSignFormPasswordConfirmation(e.target.value)}}/>
               </InputGroup>
               
               {signFormError && (<p className="text-danger">{signFormError}</p>)}

@@ -28,7 +28,9 @@ function Authentication(){
   const [signFormPasswordConfirmation, setSignFormPasswordConfirmation] = useState("");
 
   const redirect = useCallback(() =>{
-    window.location.href = AUTH_DEFAULT_REDIRECT_URL;
+    const params = new URLSearchParams(document.location.search);
+    let redirect_uri = params.get("redirect_uri") || AUTH_DEFAULT_REDIRECT_URL;
+    window.location.href = redirect_uri;
   }, []);
 
   const applyAccessToken = useCallback((accessToken) =>{

@@ -28,12 +28,12 @@ function Authentication(){
   const [signFormPassword, setSignFormPassword] = useState("");
   const [signFormPasswordConfirmation, setSignFormPasswordConfirmation] = useState("");
 
-  const applyAccessToken = function(accessToken){
+  const applyAccessToken = useCallback((accessToken) =>{
     setCookie("access_token", accessToken, {
       "domain": ".florgon.space",
       "path": "/"
     });
-  }
+  }, [setCookie]);
 
   const onSignin = useCallback(() => {
     if (signFormLogin === ""){
@@ -58,7 +58,7 @@ function Authentication(){
       setIsLoading(false);
       if (error && "error" in error){
         const error_code = error["error"]["code"];
-        if (error_code == authApiErrorCode.AUTH_INVALID_CREDENTIALS){
+        if (error_code === authApiErrorCode.AUTH_INVALID_CREDENTIALS){
           setSignFormError("Invalid credentials to authenticate!");
           return;
         }
@@ -70,7 +70,6 @@ function Authentication(){
   }, [applyAccessToken, setSignFormError, setIsLoading, signFormLogin, signFormPassword]);
 
   const onSignup = useCallback(() => {
-    
     if (signFormUsername === "") return setSignFormError("Please enter username!");
     if (signFormPassword === "") return setSignFormError("Please enter password!");
     if (signFormEmail === "") return setSignFormError("Please enter email!");
@@ -88,20 +87,20 @@ function Authentication(){
       setIsLoading(false);
       if (error && "error" in error){
         const error_code = error["error"]["code"];
-        if (error_code == authApiErrorCode.AUTH_EMAIL_TAKEN){
+        if (error_code === authApiErrorCode.AUTH_EMAIL_TAKEN){
           return setSignFormError("Given email is already taken!");
         }
-        if (error_code == authApiErrorCode.AUTH_USERNAME_TAKEN){
+        if (error_code === authApiErrorCode.AUTH_USERNAME_TAKEN){
           return setSignFormError("Given username is already taken!");
         }
-        if (error_code == authApiErrorCode.AUTH_EMAIL_INVALID){
+        if (error_code === authApiErrorCode.AUTH_EMAIL_INVALID){
           return setSignFormError("Invalid email!");
         }
         return setSignFormError("Failed to sign-in because of error: " + authApiGetErrorMessageFromCode(error_code));
       }
       setSignFormError("Failed to sign-in because of unexpected error!");
     })
-  }, [applyAccessToken, setSignFormError, setIsLoading, signFormLogin, signFormPassword, signFormPasswordConfirmation]);
+  }, [applyAccessToken, setSignFormError, setIsLoading, signFormPassword, signFormPasswordConfirmation, signFormUsername, signFormEmail]);
 
   /// Requesting user.
   useEffect(() => {
@@ -112,7 +111,7 @@ function Authentication(){
       if ("error" in error){
         // Get error code.
         const error_code = error["error"]["code"];
-        if (error_code == authApiErrorCode.AUTH_INVALID_TOKEN || error_code == authApiErrorCode.AUTH_EXPIRED_TOKEN || error_code == authApiErrorCode.AUTH_REQUIRED){
+        if (error_code === authApiErrorCode.AUTH_INVALID_TOKEN || error_code === authApiErrorCode.AUTH_EXPIRED_TOKEN || error_code === authApiErrorCode.AUTH_REQUIRED){
           // If our token is invalid.
           return;
         }
@@ -120,7 +119,7 @@ function Authentication(){
         setError(error["error"]);
       }
     })
-  }, [setIsLoading, setError]);
+  }, [setIsLoading, setError, cookies]);
 
 
   // Handle error message.

@@ -110,8 +110,6 @@ function Authentication(){
   /// Requesting user.
   useEffect(() => {
     const access_token = cookies["access_token"];
-    if (!access_token) return redirect();
-
     authMethodVerify(access_token, () => {
       redirect();
     }, (_, error) => {

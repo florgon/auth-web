@@ -10,7 +10,6 @@ import { authMethodUser, authMethodSignin, authMethodSignup, authApiErrorCode, a
 // Where to redirect when redirect param is not passed.
 const AUTH_DEFAULT_REDIRECT_URL = "https://profile.florgon.space/?";
 
-
 function Authentication(){
   /// @description Authentication component with API requests.
 
@@ -27,6 +26,10 @@ function Authentication(){
   const [signFormEmail, setSignFormEmail] = useState("");
   const [signFormPassword, setSignFormPassword] = useState("");
   const [signFormPasswordConfirmation, setSignFormPasswordConfirmation] = useState("");
+
+  const redirect = useCallback(() =>{
+    window.location.href = AUTH_DEFAULT_REDIRECT_URL;
+  }, []);
 
   const applyAccessToken = useCallback((accessToken) =>{
     setCookie("access_token", accessToken, {
@@ -53,7 +56,7 @@ function Authentication(){
     setIsLoading(true);
     authMethodSignin(signFormLogin, signFormPassword, (_, response) => {
       applyAccessToken(response["success"]["token"]);
-      window.location.href = AUTH_DEFAULT_REDIRECT_URL;
+      redirect();
     }, (_, error) => {
       setIsLoading(false);
       if (error && "error" in error){
@@ -82,7 +85,7 @@ function Authentication(){
     
     authMethodSignup(signFormUsername, signFormEmail, signFormPassword, (_, response) => {
       applyAccessToken(response["success"]["token"]);
-      window.location.href = AUTH_DEFAULT_REDIRECT_URL;
+      redirect();
     }, (_, error) => {
       setIsLoading(false);
       if (error && "error" in error){
@@ -104,8 +107,11 @@ function Authentication(){
 
   /// Requesting user.
   useEffect(() => {
-    authMethodUser(cookies["access_token"], () => {
-      window.location.href = AUTH_DEFAULT_REDIRECT_URL;
+    const access_token = cookies["access_token"];
+    if (!access_token) return redirect();
+
+    authMethodUser(access_token, () => {
+      redirect();
     }, (_, error) => {
       setIsLoading(false);
       if ("error" in error){

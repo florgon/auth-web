@@ -4,7 +4,7 @@ import { useCookies } from 'react-cookie';
 import { Container, Row, Col, Card, InputGroup, FormControl, Button} from 'react-bootstrap';
 
 // Auth API.
-import { authMethodUser, authMethodSignin, authMethodSignup, authApiErrorCode, authApiGetErrorMessageFromCode } from './florgon-auth-api';
+import { authMethodVerify, authMethodSignin, authMethodSignup, authApiErrorCode, authApiGetErrorMessageFromCode } from './florgon-auth-api';
 
 
 // Where to redirect when redirect param is not passed.
@@ -112,7 +112,7 @@ function Authentication(){
     const access_token = cookies["access_token"];
     if (!access_token) return redirect();
 
-    authMethodUser(access_token, () => {
+    authMethodVerify(access_token, () => {
       redirect();
     }, (_, error) => {
       setIsLoading(false);

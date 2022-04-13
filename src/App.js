@@ -4,7 +4,10 @@ import { useCookies } from 'react-cookie';
 import { Container, Row, Col, Card, InputGroup, FormControl, Button} from 'react-bootstrap';
 
 // Auth API.
-import { authMethodVerify, authMethodSignin, authMethodSignup, authApiErrorCode, authApiGetErrorMessageFromCode } from './florgon-auth-api';
+import { 
+  authMethodVerify, authMethodSignin, authMethodSignup, 
+  authApiErrorCode, authApiGetErrorMessageFromCode 
+} from '@kirillzhosul/florgon-auth-api';
 
 
 // Where to redirect when redirect param is not passed.

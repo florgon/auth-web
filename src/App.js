@@ -39,7 +39,8 @@ function Authentication(){
   const applyAccessToken = useCallback((accessToken) =>{
     setCookie("access_token", accessToken, {
       "domain": ".florgon.space",
-      "path": "/"
+      "path": "/",
+      "maxAge": 3600 * 24 * 30
     });
   }, [setCookie]);
 

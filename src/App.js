@@ -13,6 +13,21 @@ import {
 // Where to redirect when redirect param is not passed.
 const AUTH_DEFAULT_REDIRECT_URL = "https://profile.florgon.space/?";
 
+const Footer = function(){
+  /// @description Footer component for servic list.
+  return (<Card className="shadow-sm mt-3">
+    <Card.Body>
+      <Card.Text as="h6">
+        <div>
+          Copyright (c) 2022 <a href="https://florgon.space">Florgon</a>.
+        </div>
+        <div><a href="https://dev.florgon.space">For developers</a></div>
+        <a href="mailto: support@florgon.space">Contact support</a>
+        </Card.Text>
+    </Card.Body>
+  </Card>);
+}
+
 function Authentication(){
   /// @description Authentication component with API requests.
 
@@ -222,6 +237,7 @@ function App() {
                 </Card.Body>
               </Card>
               <Authentication/>
+              <Footer/>
             </div>
           </Col>
         </Row>

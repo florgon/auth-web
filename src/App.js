@@ -102,6 +102,9 @@ function Authentication(){
         if (error_code === authApiErrorCode.AUTH_USERNAME_TAKEN){
           return setSignFormError("Given username is already taken!");
         }
+        if (error_code === authApiErrorCode.AUTH_USERNAME_INVALID){
+          return setSignFormError("Invalid username (Should be lowercase alphabet letters only)!");
+        }
         if (error_code === authApiErrorCode.AUTH_EMAIL_INVALID){
           return setSignFormError("Invalid email!");
         }

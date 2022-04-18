@@ -44,12 +44,14 @@ function Authentication(){
   const [signFormEmail, setSignFormEmail] = useState("");
   const [signFormPassword, setSignFormPassword] = useState("");
   const [signFormPasswordConfirmation, setSignFormPasswordConfirmation] = useState("");
+  const [redirectUri] = useState(() => {
+    const params = new URLSearchParams(document.location.search);
+    return params.get("redirect_uri") || AUTH_DEFAULT_REDIRECT_URL;
+  })
 
   const redirect = useCallback(() =>{
-    const params = new URLSearchParams(document.location.search);
-    let redirect_uri = params.get("redirect_uri") || AUTH_DEFAULT_REDIRECT_URL;
-    window.location.href = redirect_uri;
-  }, []);
+    window.location.href = redirectUri;
+  }, [redirectUri]);
 
   const applyAccessToken = useCallback((accessToken) =>{
     setCookie("access_token", accessToken, {
@@ -160,10 +162,17 @@ function Authentication(){
   if (isLoading) return <div>Loading...</div>;
   
   return (<div>
+    {redirectUri != AUTH_DEFAULT_REDIRECT_URL && <Card border="warning" className="mb-5 shadow-sm">
+      <Card.Body>
+        <Card.Title>Redirect warning!</Card.Title>
+        <Card.Text>You will be redirected to <a href={redirectUri}>{redirectUri}</a> after authentication.</Card.Text>
+      </Card.Body>
+    </Card>}
     <Container fluid>
+
       <Row>
         {signMethod === "signin" && <Col>
-          <Card className="shadow">
+          <Card className="shadow-sm">
             <Card.Body>
               <Card.Title as="h2">Sign in.</Card.Title>
               <Card.Text>
@@ -187,7 +196,7 @@ function Authentication(){
           </Card>
         </Col>}
         {signMethod === "signup" && <Col>
-          <Card className="shadow">
+          <Card className="shadow-sm">
             <Card.Body>
               <Card.Title as="h2">Sign up.</Card.Title>
               <Card.Text>
@@ -228,7 +237,7 @@ function App() {
         <Row>
           <Col className="d-flex justify-content-center">
             <div className="text-center mt-5">
-              <Card className="shadow-sm mb-5" border="warning">
+              <Card className="shadow-sm mb-5" border="primary">
                 <Card.Body>
                   <Card.Title as="h2">Authentication.</Card.Title>
                   <Card.Text>

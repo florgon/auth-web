@@ -217,7 +217,7 @@ function Authentication(){
           <Card.Text>
             <div><b>Note! <i>Application will have full access to your account!</i></b></div>
             
-            After redirect, you will be redirected to <a href={oauthClientData.redirectUri}>{oauthClientData.redirectUri}</a> after authentication.
+            You will be redirected to <a href={oauthClientData.redirectUri}>{oauthClientData.redirectUri}</a>.
           </Card.Text>
         </Card.Body>
       </Card>
@@ -230,7 +230,7 @@ function Authentication(){
             <Card.Body>
               <Card.Title as="h2">Allow access.</Card.Title>
               <Row>
-                <Col><Button variant="warning" className="shadow-sm text-nowrap mb-1" onClick={() => redirect()}>Disallowed access</Button></Col>
+                <Col><Button variant="warning" className="shadow-sm text-nowrap mb-1" onClick={() => redirect()}>Disallow access</Button></Col>
                 <Col><Button variant="success" className="shadow-sm text-nowrap" onClick={() => redirect(cookies["access_token"])}>Allow access</Button> </Col>
               </Row>
             </Card.Body>

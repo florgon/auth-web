@@ -5,27 +5,24 @@ import { Container, Row, Col, Card, InputGroup, FormControl, Button} from 'react
 
 // Auth API.
 import { 
-  authMethodVerify, authMethodSignin, authMethodSignup, 
+  authMethodVerify, authMethodSignin, authMethodSignup,
   authApiErrorCode, authApiGetErrorMessageFromCode 
 } from '@kirillzhosul/florgon-auth-api';
 
 
 // Where to redirect when redirect param is not passed.
-const AUTH_DEFAULT_REDIRECT_URL = "https://profile.florgon.space/?";
+const AUTH_DEFAULT_REDIRECT_URI = "https://profile.florgon.space";
+const AUTH_DEFAULT_RESPONSE_TYPE = "token";
 
 const Footer = function(){
   /// @description Footer component for servic list.
-  return (<Card className="shadow-sm mt-3">
-    <Card.Body>
-      <Card.Text as="h6">
-        <div>
-          Copyright (c) 2022 <a href="https://florgon.space">Florgon</a>.
-        </div>
-        <div><a href="https://dev.florgon.space">For developers</a></div>
-        <a href="mailto: support@florgon.space">Contact support</a>
-        </Card.Text>
-    </Card.Body>
-  </Card>);
+  return (<div className="mt-3 w-50 mx-auto">
+    <div>
+      Copyright (c) 2022 <a href="https://florgon.space">Florgon</a>.
+    </div>
+    <a href="https://dev.florgon.space" className="mx-1">For developers</a>
+    <a href="mailto: support@florgon.space" className="mx-1">Contact support</a>
+  </div>);
 }
 
 function Authentication(){
@@ -44,14 +41,26 @@ function Authentication(){
   const [signFormEmail, setSignFormEmail] = useState("");
   const [signFormPassword, setSignFormPassword] = useState("");
   const [signFormPasswordConfirmation, setSignFormPasswordConfirmation] = useState("");
-  const [redirectUri] = useState(() => {
+  const [oauthClientData] = useState(() => {
     const params = new URLSearchParams(document.location.search);
-    return params.get("redirect_uri") || AUTH_DEFAULT_REDIRECT_URL;
+    return {
+      redirectUri: params.get("redirect_uri") || AUTH_DEFAULT_REDIRECT_URI,
+      responseType: params.get("response_type") || AUTH_DEFAULT_RESPONSE_TYPE
+    }
   })
 
-  const redirect = useCallback(() =>{
-    window.location.href = redirectUri;
-  }, [redirectUri]);
+  const redirect = useCallback((token) =>{
+    let redirectUriParams = "?"
+    if (oauthClientData.redirectUri !== AUTH_DEFAULT_REDIRECT_URI){
+      if (oauthClientData.responseType === "token"){
+        redirectUriParams += `token=${token}`
+      }
+      if (oauthClientData.responseType === "code"){
+        redirectUriParams += `#error=oauth-code-flow-not-implemented`
+      }
+    }
+    window.location.href = oauthClientData.redirectUri + redirectUriParams;
+  }, [oauthClientData]);
 
   const applyAccessToken = useCallback((accessToken) =>{
     setCookie("access_token", accessToken, {
@@ -78,8 +87,9 @@ function Authentication(){
     setSignFormError(undefined);
     setIsLoading(true);
     authMethodSignin(signFormLogin, signFormPassword, (_, response) => {
-      applyAccessToken(response["success"]["token"]);
-      redirect();
+      const token = response["success"]["token"];
+      applyAccessToken(token);
+      redirect(token);
     }, (_, error) => {
       setIsLoading(false);
       if (error && "error" in error){
@@ -107,8 +117,9 @@ function Authentication(){
     setIsLoading(true);
     
     authMethodSignup(signFormUsername, signFormEmail, signFormPassword, (_, response) => {
-      applyAccessToken(response["success"]["token"]);
-      redirect();
+      const token = response["success"]["token"]
+      applyAccessToken(token);
+      redirect(token);
     }, (_, error) => {
       setIsLoading(false);
       if (error && "error" in error){
@@ -135,7 +146,7 @@ function Authentication(){
   useEffect(() => {
     const access_token = cookies["access_token"];
     authMethodVerify(access_token, () => {
-      redirect();
+      redirect(access_token);
     }, (_, error) => {
       setIsLoading(false);
       if ("error" in error){
@@ -161,16 +172,23 @@ function Authentication(){
   /// Other messages.
   if (isLoading) return <div>Loading...</div>;
   
+  const redirect_uri_domain = new URL(oauthClientData.redirectUri).hostname
   return (<div>
-    {redirectUri != AUTH_DEFAULT_REDIRECT_URL && <Card border="warning" className="mb-5 shadow-sm">
-      <Card.Body>
-        <Card.Title>Redirect warning!</Card.Title>
-        <Card.Text>You will be redirected to <a href={redirectUri}>{redirectUri}</a> after authentication.</Card.Text>
-      </Card.Body>
-    </Card>}
-    <Container fluid>
+    <Container>
+      <Card border="warning" className="mb-5 shadow-sm mx-auto">
+        <Card.Body>
+          <Card.Title as="h2"><a href={oauthClientData.redirectUri}>{redirect_uri_domain}</a> requests access to your Florgon account</Card.Title>
+          <Card.Text>
+            <div><b>Note! <i>Application will have full access to your account!</i></b></div>
+            
+            After redirect, you will be redirected to <a href={oauthClientData.redirectUri}>{oauthClientData.redirectUri}</a> after authentication.
+          </Card.Text>
+        </Card.Body>
+      </Card>
+    </Container>
+    <Container>
 
-      <Row>
+      <Row className="w-75 mx-auto">
         {signMethod === "signin" && <Col>
           <Card className="shadow-sm">
             <Card.Body>
@@ -233,23 +251,11 @@ function App() {
   // Core application.
   return (
     <div className="App">
-      <Container fluid>
-        <Row>
-          <Col className="d-flex justify-content-center">
-            <div className="text-center mt-5">
-              <Card className="shadow-sm mb-5" border="primary">
-                <Card.Body>
-                  <Card.Title as="h2">Authentication.</Card.Title>
-                  <Card.Text>
-                    <span className="mb-3 mt-3">In order to continue, you should authenticate in your Florgon account.</span>
-                  </Card.Text>
-                </Card.Body>
-              </Card>
-              <Authentication/>
-              <Footer/>
-            </div>
-          </Col>
-        </Row>
+      <Container>
+          <div className="text-center mt-5">
+            <Authentication/>
+            <Footer/>
+          </div>
       </Container>
     </div>
   );

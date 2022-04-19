@@ -6,6 +6,7 @@ import { Container, Row, Col, Card, InputGroup, FormControl, Button} from 'react
 // Auth API.
 import { 
   authMethodVerify, authMethodSignin, authMethodSignup,
+  authApiRequest,
   authApiErrorCode, authApiGetErrorMessageFromCode 
 } from '@kirillzhosul/florgon-auth-api';
 
@@ -13,6 +14,7 @@ import {
 // Where to redirect when redirect param is not passed.
 const AUTH_DEFAULT_REDIRECT_URI = "https://profile.florgon.space";
 const AUTH_DEFAULT_RESPONSE_TYPE = "token";
+const AUTH_DEFAULT_CLIENT_ID = "0";
 
 const Footer = function(){
   /// @description Footer component for servic list.
@@ -41,11 +43,15 @@ function Authentication(){
   const [signFormEmail, setSignFormEmail] = useState("");
   const [signFormPassword, setSignFormPassword] = useState("");
   const [signFormPasswordConfirmation, setSignFormPasswordConfirmation] = useState("");
+  const [signFormRememberMe, setSignFormRememberMe] = useState(true); // Can`t be false due to current SSO on florgon.space
   const [oauthClientData] = useState(() => {
     const params = new URLSearchParams(document.location.search);
     return {
       redirectUri: params.get("redirect_uri") || AUTH_DEFAULT_REDIRECT_URI,
-      responseType: params.get("response_type") || AUTH_DEFAULT_RESPONSE_TYPE
+      responseType: params.get("response_type") || AUTH_DEFAULT_RESPONSE_TYPE,
+      clientId: params.get("client_id") || AUTH_DEFAULT_CLIENT_ID,
+      displayName: undefined,
+      displayAvatar: undefined,
     }
   })
 
@@ -88,7 +94,9 @@ function Authentication(){
     setIsLoading(true);
     authMethodSignin(signFormLogin, signFormPassword, (_, response) => {
       const token = response["success"]["token"];
-      applyAccessToken(token);
+      if (signFormRememberMe){
+        applyAccessToken(token);
+      }
       redirect(token);
     }, (_, error) => {
       setIsLoading(false);
@@ -142,9 +150,28 @@ function Authentication(){
     })
   }, [applyAccessToken, setSignFormError, setIsLoading, signFormPassword, signFormPasswordConfirmation, signFormUsername, signFormEmail]);
 
-  /// Requesting user.
+  /// Requesting OAuth client and user.
   useEffect(() => {
+    setIsLoading(true);
+    authApiRequest("oauth/client/get", `client_id=${oauthClientData.clientId}`, "", (_, response) => {
+      oauthClientData.displayAvatar = response["success"]["oauth_client"]["display"]["avatar"];
+      oauthClientData.displayName = response["success"]["oauth_client"]["display"]["name"];
+      setIsLoading(false);
+      requestUser();
+    }, (_, error) => {
+      setIsLoading(false);
+      if (oauthClientData.clientId !== AUTH_DEFAULT_CLIENT_ID){
+        setError(error["error"]);
+      }else{
+        requestUser();
+      }
+    })
+  }, [setIsLoading, setError, cookies]);
+
+  /// Requesting user.
+  const requestUser = useCallback(() => {
     const access_token = cookies["access_token"];
+    setIsLoading(true);
     authMethodVerify(access_token, () => {
       redirect(access_token);
     }, (_, error) => {
@@ -165,7 +192,7 @@ function Authentication(){
 
   // Handle error message.
   if (error) return (<div>
-    Got error when loading account. 
+    Got error. 
     Code: ({error["code"]}) {authApiGetErrorMessageFromCode(error["code"])}. Message: {error["message"]}
   </div>);
 
@@ -177,7 +204,12 @@ function Authentication(){
     <Container>
       <Card border="warning" className="mb-5 shadow-sm mx-auto">
         <Card.Body>
-          <Card.Title as="h2"><a href={oauthClientData.redirectUri}>{redirect_uri_domain}</a> requests access to your Florgon account</Card.Title>
+          <Card.Title as="h2">
+            {oauthClientData.displayAvatar && <div><img src={oauthClientData.displayAvatar}/></div>}
+            {oauthClientData.displayName && <b>{oauthClientData.displayName}&nbsp;</b>}
+            {!oauthClientData.displayName && <a href={oauthClientData.redirectUri}>{redirect_uri_domain}</a>}
+            requests access to your Florgon account
+            </Card.Title>
           <Card.Text>
             <div><b>Note! <i>Application will have full access to your account!</i></b></div>
             

@@ -14,7 +14,7 @@ import {
 // Where to redirect when redirect param is not passed.
 const AUTH_DEFAULT_REDIRECT_URI = "https://profile.florgon.space";
 const AUTH_DEFAULT_RESPONSE_TYPE = "token";
-const AUTH_DEFAULT_CLIENT_ID = "0";
+const AUTH_DEFAULT_CLIENT_ID = "1";
 
 const Footer = function(){
   /// @description Footer component for servic list.
@@ -57,13 +57,16 @@ function Authentication(){
 
   const redirect = useCallback((token) =>{
     let redirectUriParams = "?"
-    if (oauthClientData.redirectUri !== AUTH_DEFAULT_REDIRECT_URI){
-      if (oauthClientData.responseType === "token"){
+    if (oauthClientData.responseType === "token"){
+      if (token){
         redirectUriParams += `token=${token}`
+      }else{
+        redirectUriParams += `#error=user-rejected-access`
       }
-      if (oauthClientData.responseType === "code"){
-        redirectUriParams += `#error=oauth-code-flow-not-implemented`
-      }
+      
+    }
+    if (oauthClientData.responseType === "code"){
+      redirectUriParams += `#error=oauth-code-flow-not-implemented`
     }
     window.location.href = oauthClientData.redirectUri + redirectUriParams;
   }, [oauthClientData]);
@@ -173,7 +176,8 @@ function Authentication(){
     const access_token = cookies["access_token"];
     setIsLoading(true);
     authMethodVerify(access_token, () => {
-      redirect(access_token);
+      setIsLoading(false);
+      setSignMethod("accept");
     }, (_, error) => {
       setIsLoading(false);
       if ("error" in error){
@@ -221,6 +225,17 @@ function Authentication(){
     <Container>
 
       <Row className="w-75 mx-auto">
+        {signMethod === "accept" && <Col>
+          <Card className="shadow-sm">
+            <Card.Body>
+              <Card.Title as="h2">Allow access.</Card.Title>
+              <Row>
+                <Col><Button variant="warning" className="shadow-sm text-nowrap mb-1" onClick={() => redirect()}>Disallowed access</Button></Col>
+                <Col><Button variant="success" className="shadow-sm text-nowrap" onClick={() => redirect(cookies["access_token"])}>Allow access</Button> </Col>
+              </Row>
+            </Card.Body>
+          </Card>
+        </Col>}
         {signMethod === "signin" && <Col>
           <Card className="shadow-sm">
             <Card.Body>

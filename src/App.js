@@ -5,7 +5,7 @@ import { Container, Row, Col, Card, InputGroup, FormControl, Button} from 'react
 
 // Auth API.
 import { 
-  authMethodVerify, authMethodSignin, authMethodSignup, authMethodOAuthClientGet
+  authMethodVerify, authMethodSignin, authMethodSignup, authMethodOAuthClientGet,
   authApiErrorCode, authApiGetErrorMessageFromCode 
 } from '@kirillzhosul/florgon-auth-api';
 

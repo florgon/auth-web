@@ -75,7 +75,7 @@ function Authentication(){
   const redirect = useCallback((token) =>{
     let redirectUriParams = ""
     if (oauthClientData.responseType === "none");
-    
+
     if (oauthClientData.responseType === "token"){
       if (token){
         redirectUriParams += `?state=${oauthClientData.state}&token=${token}`
@@ -91,7 +91,7 @@ function Authentication(){
 
   const applyAccessToken = useCallback((accessToken) =>{
     setCookie("access_token", accessToken, {
-      "domain": ".florgon.space",
+      "domain": "auth.florgon.space",
       "path": "/",
       "maxAge": 3600 * 24 * 30
     });

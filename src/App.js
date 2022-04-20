@@ -34,6 +34,7 @@ function Authentication(){
   const [cookies, setCookie] = useCookies(["access_token"])
 
   // States.
+  const [apiError, setApiError] = useState(undefined);
   const [error, setError] = useState(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [signMethod, setSignMethod] = useState("signup");
@@ -46,24 +47,41 @@ function Authentication(){
   const [signFormRememberMe, setSignFormRememberMe] = useState(true); // Can`t be false due to current SSO on florgon.space
   const [oauthClientData] = useState(() => {
     const params = new URLSearchParams(document.location.search);
-    return {
-      redirectUri: params.get("redirect_uri") || AUTH_DEFAULT_REDIRECT_URI,
-      responseType: params.get("response_type") || AUTH_DEFAULT_RESPONSE_TYPE,
-      clientId: params.get("client_id") || AUTH_DEFAULT_CLIENT_ID,
+    let clientData = {
       displayName: undefined,
       displayAvatar: undefined,
+
+      redirectUri: AUTH_DEFAULT_REDIRECT_URI,
+      clientId: AUTH_DEFAULT_CLIENT_ID,
+
+      responseType: params.get("response_type") || AUTH_DEFAULT_RESPONSE_TYPE,
+
+      state: params.get("state") || "",
+      scope: params.get("scope") || "all"
     }
+
+    if (params.get("redirect_uri") || params.get("client_id")){
+      clientData.redirectUri = params.get("redirect_uri") || undefined;
+      clientData.clientId = params.get("client_id") || undefined;
+    }
+
+    if (clientData.responseType !== "code" && clientData.responseType !== "token" && clientData.responseType !== "none"){
+      setError("Unknown response_type, should be one of these: `code`, `token`, `none`")
+    }
+    
+    return clientData;
   })
 
   const redirect = useCallback((token) =>{
-    let redirectUriParams = "?"
+    let redirectUriParams = ""
+    if (oauthClientData.responseType === "none");
+    
     if (oauthClientData.responseType === "token"){
       if (token){
-        redirectUriParams += `token=${token}`
+        redirectUriParams += `?state=${oauthClientData.state}&token=${token}`
       }else{
         redirectUriParams += `#error=user-rejected-access`
       }
-      
     }
     if (oauthClientData.responseType === "code"){
       redirectUriParams += `#error=oauth-code-flow-not-implemented`
@@ -159,17 +177,26 @@ function Authentication(){
     authApiRequest("oauth/client/get", `client_id=${oauthClientData.clientId}`, "", (_, response) => {
       oauthClientData.displayAvatar = response["success"]["oauth_client"]["display"]["avatar"];
       oauthClientData.displayName = response["success"]["oauth_client"]["display"]["name"];
+      if (oauthClientData.redirectUri === undefined){
+        oauthClientData.redirectUri = response["success"]["oauth_client"]["redirect_uri"];
+
+        setError("Invalid redirect_uri! redirect_uri not given.")
+      }
+
+      if (oauthClientData.redirectUri != response["success"]["oauth_client"]["redirect_uri"]){
+        if (response["success"]["oauth_client"]["redirect_uri"]) setError("Invalid redirect_uri! Mismatch with OAuth client settings.")
+      }
       setIsLoading(false);
       requestUser();
     }, (_, error) => {
       setIsLoading(false);
-      if (oauthClientData.clientId !== AUTH_DEFAULT_CLIENT_ID){
-        setError(error["error"]);
+      if (oauthClientData.clientId !== undefined){
+        setApiError(error["error"]);
       }else{
         requestUser();
       }
     })
-  }, [setIsLoading, setError, cookies]);
+  }, [setIsLoading, setApiError, setError, cookies]);
 
   /// Requesting user.
   const requestUser = useCallback(() => {
@@ -188,30 +215,32 @@ function Authentication(){
           return;
         }
 
-        setError(error["error"]);
+        setApiError(error["error"]);
       }
     })
-  }, [setIsLoading, setError, cookies]);
+  }, [setIsLoading, setApiError, cookies]);
 
 
-  // Handle error message.
-  if (error) return (<div>
-    Got error. 
-    Code: ({error["code"]}) {authApiGetErrorMessageFromCode(error["code"])}. Message: {error["message"]}
+  // Handle error messages.
+  if (apiError) return (<div className="display-5 text-danger">
+    <div className="display-6 text-black">{authApiGetErrorMessageFromCode(apiError["code"])} (Code {apiError["code"]})</div> {apiError["message"]}
+  </div>);
+  if (error) return (<div className="display-5 text-danger">
+    {error}
   </div>);
 
   /// Other messages.
   if (isLoading) return <div>Loading...</div>;
   
-  const redirect_uri_domain = new URL(oauthClientData.redirectUri).hostname
+  const redirect_uri_domain = (oauthClientData.redirectUri) ? new URL(oauthClientData.redirectUri).hostname : undefined
   return (<div>
     <Container>
       <Card border="warning" className="mb-5 shadow-sm mx-auto">
         <Card.Body>
           <Card.Title as="h2">
             {oauthClientData.displayAvatar && <div><img src={oauthClientData.displayAvatar}/></div>}
-            {oauthClientData.displayName && <b>{oauthClientData.displayName}&nbsp;</b>}
-            {!oauthClientData.displayName && <a href={oauthClientData.redirectUri}>{redirect_uri_domain}</a>}
+            {oauthClientData.displayName && <><b>{oauthClientData.displayName}</b>&nbsp;</>}
+            {!oauthClientData.displayName && <><a href={oauthClientData.redirectUri}>{redirect_uri_domain}</a>&nbsp;</>}
             requests access to your Florgon account
             </Card.Title>
           <Card.Text>

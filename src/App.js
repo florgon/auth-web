@@ -5,8 +5,7 @@ import { Container, Row, Col, Card, InputGroup, FormControl, Button} from 'react
 
 // Auth API.
 import { 
-  authMethodVerify, authMethodSignin, authMethodSignup,
-  authApiRequest,
+  authMethodVerify, authMethodSignin, authMethodSignup, authMethodOAuthClientGet
   authApiErrorCode, authApiGetErrorMessageFromCode 
 } from '@kirillzhosul/florgon-auth-api';
 
@@ -174,7 +173,7 @@ function Authentication(){
   /// Requesting OAuth client and user.
   useEffect(() => {
     setIsLoading(true);
-    authApiRequest("oauth/client/get", `client_id=${oauthClientData.clientId}`, "", (_, response) => {
+    authMethodOAuthClientGet(oauthClientData.clientId, (_, response) => {
       oauthClientData.displayAvatar = response["success"]["oauth_client"]["display"]["avatar"];
       oauthClientData.displayName = response["success"]["oauth_client"]["display"]["name"];
       if (oauthClientData.redirectUri === undefined){

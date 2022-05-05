@@ -170,8 +170,36 @@ function Authentication(){
     })
   }, [applyAccessToken, setSignFormError, setIsLoading, signFormPassword, signFormPasswordConfirmation, signFormUsername, signFormEmail]);
 
+  /// Requesting user.
+  const requestUser = useCallback(() => {
+    const access_token = cookies["access_token"];
+    setIsLoading(true);
+    authMethodVerify(access_token, () => {
+      setIsLoading(false);
+      setSignMethod("accept");
+    }, (_, error) => {
+      setIsLoading(false);
+      if ("error" in error){
+        // Get error code.
+        const error_code = error["error"]["code"];
+        if (error_code === authApiErrorCode.AUTH_INVALID_TOKEN || error_code === authApiErrorCode.AUTH_EXPIRED_TOKEN || error_code === authApiErrorCode.AUTH_REQUIRED){
+          // If our token is invalid.
+          return;
+        }
+
+        setApiError(error["error"]);
+      }
+    })
+  }, [setIsLoading, setApiError, cookies]);
+
   /// Requesting OAuth client and user.
   useEffect(() => {
+    const params = new URLSearchParams(document.location.search);
+    if (params.get("action") === "logout"){
+      applyAccessToken(undefined);
+      window.location = window.location.pathname;
+      return;
+    }
     setIsLoading(true);
     authMethodOAuthClientGet(oauthClientData.clientId, (_, response) => {
       oauthClientData.displayAvatar = response["success"]["oauth_client"]["display"]["avatar"];
@@ -196,29 +224,6 @@ function Authentication(){
       }
     })
   }, [setIsLoading, setApiError, setError, cookies]);
-
-  /// Requesting user.
-  const requestUser = useCallback(() => {
-    const access_token = cookies["access_token"];
-    setIsLoading(true);
-    authMethodVerify(access_token, () => {
-      setIsLoading(false);
-      setSignMethod("accept");
-    }, (_, error) => {
-      setIsLoading(false);
-      if ("error" in error){
-        // Get error code.
-        const error_code = error["error"]["code"];
-        if (error_code === authApiErrorCode.AUTH_INVALID_TOKEN || error_code === authApiErrorCode.AUTH_EXPIRED_TOKEN || error_code === authApiErrorCode.AUTH_REQUIRED){
-          // If our token is invalid.
-          return;
-        }
-
-        setApiError(error["error"]);
-      }
-    })
-  }, [setIsLoading, setApiError, cookies]);
-
 
   // Handle error messages.
   if (apiError) return (<div className="display-5 text-danger">

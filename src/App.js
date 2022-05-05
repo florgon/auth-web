@@ -5,7 +5,7 @@ import { Container, Row, Col, Card, InputGroup, FormControl, Button} from 'react
 
 // Auth API.
 import { 
-  authMethodVerify, authMethodSignin, authMethodSignup, authMethodOAuthClientGet,
+  authMethodUser, authMethodSignin, authMethodSignup, authMethodOAuthClientGet,
   authApiErrorCode, authApiGetErrorMessageFromCode 
 } from '@kirillzhosul/florgon-auth-api';
 
@@ -17,24 +17,33 @@ const AUTH_DEFAULT_CLIENT_ID = "1";
 
 const Footer = function(){
   /// @description Footer component for servic list.
-  return (<div className="mt-3 w-50 mx-auto">
-    <div>
-      Copyright (c) 2022 <a href="https://florgon.space">Florgon</a>.
-    </div>
-    <a href="https://dev.florgon.space" className="mx-1">For developers</a>
-    <a href="mailto: support@florgon.space" className="mx-1">Contact support</a>
-  </div>);
+  return (<Card className="shadow-sm mt-3 w-50 mx-auto">
+    <Card.Body>
+      <Card.Text as="h6">
+        <div>
+          Copyright (c) 2022 <a href="https://florgon.space">Florgon</a>.
+        </div>
+        <div>
+          <a href="https://florgon.space/uploads/legal/privacy-policy.txt">Privacy policy</a>
+          &nbsp;
+          <a href="https://florgon.space/uploads/legal/terms-of-use.txt">Terms of use</a>
+        </div>
+        <a href="https://dev.florgon.space">For developers</a>
+        </Card.Text>
+    </Card.Body>
+  </Card>);
 }
 
 function Authentication(){
   /// @description Authentication component with API requests.
 
   // Usings.
-  const [cookies, setCookie] = useCookies(["access_token"])
+  const [cookies, setCookie, removeCookie] = useCookies(["access_token"])
 
   // States.
   const [apiError, setApiError] = useState(undefined);
   const [error, setError] = useState(undefined);
+  const [user, setUser] = useState(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const [signMethod, setSignMethod] = useState("signup");
   const [signFormError, setSignFormError] = useState(undefined);
@@ -170,11 +179,18 @@ function Authentication(){
     })
   }, [applyAccessToken, setSignFormError, setIsLoading, signFormPassword, signFormPasswordConfirmation, signFormUsername, signFormEmail]);
 
+  const logout = useCallback(() => {
+    removeCookie("access_token");
+    window.location = window.location.pathname;
+    window.location.reload();
+  })
+  
   /// Requesting user.
   const requestUser = useCallback(() => {
     const access_token = cookies["access_token"];
     setIsLoading(true);
-    authMethodVerify(access_token, () => {
+    authMethodUser(access_token, (_, response) => {
+      setUser(response["success"]["user"]);
       setIsLoading(false);
       setSignMethod("accept");
     }, (_, error) => {
@@ -190,14 +206,13 @@ function Authentication(){
         setApiError(error["error"]);
       }
     })
-  }, [setIsLoading, setApiError, cookies]);
+  }, [setIsLoading, setApiError, cookies, setUser]);
 
   /// Requesting OAuth client and user.
   useEffect(() => {
     const params = new URLSearchParams(document.location.search);
     if (params.get("action") === "logout"){
-      applyAccessToken(undefined);
-      window.location = window.location.pathname;
+      logout();
       return;
     }
     setIsLoading(true);
@@ -261,12 +276,16 @@ function Authentication(){
         {signMethod === "accept" && <Col>
           <Card className="shadow-sm">
             <Card.Body>
-              <Card.Title as="h2">Allow access.</Card.Title>
               <Row>
-                <Col><Button variant="warning" className="shadow-sm text-nowrap mb-1" onClick={() => redirect()}>Disallow access</Button></Col>
-                <Col><Button variant="success" className="shadow-sm text-nowrap" onClick={() => redirect(cookies["access_token"])}>Allow access</Button> </Col>
+                <Col><Button variant="warning" size="lg" className="shadow-sm text-nowrap mb-1" onClick={() => redirect()}>Disallow access</Button></Col>
+                <Col><Button variant="success" size="lg" className="shadow-sm text-nowrap" onClick={logout}>Allow access</Button> </Col>
               </Row>
             </Card.Body>
+            {user !== undefined && 
+              <Card.Footer>
+                <div>Signed in as <b>{user["username"]}</b></div>
+                <Button size="sm" variant="warning" className="shadow-sm text-nowrap mb-1" onClick={() => redirect()}>Logout?</Button>
+              </Card.Footer>}
           </Card>
         </Col>}
         {signMethod === "signin" && <Col>

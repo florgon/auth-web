@@ -277,14 +277,14 @@ function Authentication(){
           <Card className="shadow-sm">
             <Card.Body>
               <Row>
-                <Col><Button variant="warning" size="lg" className="shadow-sm text-nowrap mb-1" onClick={() => redirect()}>Disallow access</Button></Col>
-                <Col><Button variant="success" size="lg" className="shadow-sm text-nowrap" onClick={logout}>Allow access</Button> </Col>
+                <Col><Button variant="warning" size="lg" className="shadow-sm text-nowrap mb-1" onClick={redirect}>Disallow access</Button></Col>
+                <Col><Button variant="success" size="lg" className="shadow-sm text-nowrap" onClick={() => redirect(cookies["access_token"])}>Allow access</Button> </Col>
               </Row>
             </Card.Body>
             {user !== undefined && 
               <Card.Footer>
                 <div>Signed in as <b>{user["username"]}</b></div>
-                <Button size="sm" variant="warning" className="shadow-sm text-nowrap mb-1" onClick={() => redirect()}>Logout?</Button>
+                <Button size="sm" variant="warning" className="shadow-sm text-nowrap mb-1" onClick={logout}>Logout?</Button>
               </Card.Footer>}
           </Card>
         </Col>}

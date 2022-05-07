@@ -15,6 +15,7 @@ const AUTH_DEFAULT_REDIRECT_URI = "https://profile.florgon.space";
 const AUTH_DEFAULT_RESPONSE_TYPE = "token";
 const AUTH_DEFAULT_CLIENT_ID = "1";
 
+
 const Footer = function(){
   /// @description Footer component for servic list.
   return (<Card className="shadow-sm mt-3 w-50 mx-auto">
@@ -102,11 +103,21 @@ function Authentication(){
       "path": "/",
       "maxAge": 3600 * 24 * 30
     });
+    setCookie("FLORGON_AUTH_USER_ACCESS_TOKEN", accessToken, {
+      "domain": ".florgon.space",
+      "path": "/",
+      "maxAge": 3600 * 24 * 30
+    });
   }, [setCookie]);
 
   const removeAccessToken = useCallback((accessToken) =>{
     removeCookie("access_token", {
       "domain": "auth.florgon.space",
+      "path": "/",
+      "maxAge": 3600 * 24 * 30
+    });
+    removeCookie("FLORGON_AUTH_USER_ACCESS_TOKEN", accessToken, {
+      "domain": ".florgon.space",
       "path": "/",
       "maxAge": 3600 * 24 * 30
     });

@@ -186,8 +186,7 @@ function Authentication(){
 
   const logout = useCallback(() => {
     removeAccessToken();
-    window.location = window.location.pathname;
-    window.location.reload();
+    window.location.replace(window.location.pathname);
   }, [removeAccessToken])
   
   /// Requesting user.

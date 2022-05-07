@@ -52,7 +52,6 @@ function Authentication(){
   const [signFormEmail, setSignFormEmail] = useState("");
   const [signFormPassword, setSignFormPassword] = useState("");
   const [signFormPasswordConfirmation, setSignFormPasswordConfirmation] = useState("");
-  const [signFormRememberMe, setSignFormRememberMe] = useState(true); // Can`t be false due to current SSO on florgon.space
   const [oauthClientData] = useState(() => {
     const params = new URLSearchParams(document.location.search);
     let clientData = {
@@ -105,6 +104,14 @@ function Authentication(){
     });
   }, [setCookie]);
 
+  const removeAccessToken = useCallback((accessToken) =>{
+    removeCookie("access_token", {
+      "domain": "auth.florgon.space",
+      "path": "/",
+      "maxAge": 3600 * 24 * 30
+    });
+  }, [removeCookie]);
+
   const onSignin = useCallback(() => {
     if (signFormLogin === ""){
       setSignFormError("Please enter username or email!");
@@ -123,9 +130,7 @@ function Authentication(){
     setIsLoading(true);
     authMethodSignin(signFormLogin, signFormPassword, (_, response) => {
       const token = response["success"]["token"];
-      if (signFormRememberMe){
-        applyAccessToken(token);
-      }
+      applyAccessToken(token);
       redirect(token);
     }, (_, error) => {
       setIsLoading(false);
@@ -140,7 +145,7 @@ function Authentication(){
       }
       setSignFormError("Failed to sign-in because of unexpected error!");
     })
-  }, [applyAccessToken, setSignFormError, setIsLoading, signFormLogin, signFormPassword]);
+  }, [applyAccessToken, setSignFormError, setIsLoading, signFormLogin, signFormPassword, redirect]);
 
   const onSignup = useCallback(() => {
     if (signFormUsername === "") return setSignFormError("Please enter username!");
@@ -177,13 +182,13 @@ function Authentication(){
       }
       setSignFormError("Failed to sign-in because of unexpected error!");
     })
-  }, [applyAccessToken, setSignFormError, setIsLoading, signFormPassword, signFormPasswordConfirmation, signFormUsername, signFormEmail]);
+  }, [applyAccessToken, setSignFormError, setIsLoading, signFormPassword, signFormPasswordConfirmation, signFormUsername, signFormEmail, redirect]);
 
   const logout = useCallback(() => {
-    removeCookie("access_token");
+    removeAccessToken();
     window.location = window.location.pathname;
     window.location.reload();
-  })
+  }, [removeAccessToken])
   
   /// Requesting user.
   const requestUser = useCallback(() => {
@@ -225,7 +230,7 @@ function Authentication(){
         setError("Invalid redirect_uri! redirect_uri not given.")
       }
 
-      if (oauthClientData.redirectUri != response["success"]["oauth_client"]["redirect_uri"]){
+      if (oauthClientData.redirectUri !== response["success"]["oauth_client"]["redirect_uri"]){
         if (response["success"]["oauth_client"]["redirect_uri"]) setError("Invalid redirect_uri! Mismatch with OAuth client settings.")
       }
       setIsLoading(false);
@@ -238,7 +243,7 @@ function Authentication(){
         requestUser();
       }
     })
-  }, [setIsLoading, setApiError, setError, cookies]);
+  }, [setIsLoading, setApiError, setError, cookies, logout, oauthClientData, requestUser]);
 
   // Handle error messages.
   if (apiError) return (<div className="display-5 text-danger">
@@ -257,7 +262,7 @@ function Authentication(){
       <Card border="warning" className="mb-5 shadow-sm mx-auto">
         <Card.Body>
           <Card.Title as="h2">
-            {oauthClientData.displayAvatar && <div><img src={oauthClientData.displayAvatar}/></div>}
+            {oauthClientData.displayAvatar && <div><img src={oauthClientData.displayAvatar} alt="Display avatar"/></div>}
             {oauthClientData.displayName && <><b>{oauthClientData.displayName}</b>&nbsp;</>}
             {!oauthClientData.displayName && <><a href={oauthClientData.redirectUri}>{redirect_uri_domain}</a>&nbsp;</>}
             requests access to your Florgon account
@@ -277,14 +282,14 @@ function Authentication(){
           <Card className="shadow-sm">
             <Card.Body>
               <Row>
-                <Col><Button variant="warning" size="lg" className="shadow-sm text-nowrap mb-1" onClick={redirect}>Disallow access</Button></Col>
+                <Col><Button variant="warning" size="lg" className="shadow-sm text-nowrap mb-1" onClick={() => redirect()}>Disallow access</Button></Col>
                 <Col><Button variant="success" size="lg" className="shadow-sm text-nowrap" onClick={() => redirect(cookies["access_token"])}>Allow access</Button> </Col>
               </Row>
             </Card.Body>
             {user !== undefined && 
               <Card.Footer>
                 <div>Signed in as <b>{user["username"]}</b></div>
-                <Button size="sm" variant="warning" className="shadow-sm text-nowrap mb-1" onClick={logout}>Logout?</Button>
+                <Button size="sm" variant="warning" className="shadow-sm text-nowrap mb-1" onClick={() => logout()}>Logout?</Button>
               </Card.Footer>}
           </Card>
         </Col>}

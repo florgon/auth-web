@@ -139,11 +139,11 @@ function Authentication(){
 
     setSignFormError(undefined);
     setIsLoading(true);
-    authMethodSignin(signFormLogin, signFormPassword, (_, response) => {
+    authMethodSignin(signFormLogin, signFormPassword).then((response) => {
       const token = response["success"]["token"];
       applyAccessToken(token);
       redirect(token);
-    }, (_, error) => {
+    }).catch((error) => {
       setIsLoading(false);
       if (error && "error" in error){
         const error_code = error["error"]["code"];
@@ -169,11 +169,11 @@ function Authentication(){
     setSignFormError(undefined);
     setIsLoading(true);
     
-    authMethodSignup(signFormUsername, signFormEmail, signFormPassword, (_, response) => {
+    authMethodSignup(signFormUsername, signFormEmail, signFormPassword).then((_, response) => {
       const token = response["success"]["token"]
       applyAccessToken(token);
       redirect(token);
-    }, (_, error) => {
+    }).catch((error) => {
       setIsLoading(false);
       if (error && "error" in error){
         const error_code = error["error"]["code"];
@@ -204,13 +204,13 @@ function Authentication(){
   const requestUser = useCallback(() => {
     const access_token = cookies["access_token"];
     setIsLoading(true);
-    authMethodUser(access_token, (_, response) => {
+    authMethodUser(access_token).then((response) => {
       setUser(response["success"]["user"]);
       setIsLoading(false);
       setSignMethod("accept");
-    }, (_, error) => {
+    }).catch((error) => {
       setIsLoading(false);
-      if ("error" in error){
+      if (error && "error" in error){
         // Get error code.
         const error_code = error["error"]["code"];
         if (error_code === authApiErrorCode.AUTH_INVALID_TOKEN || error_code === authApiErrorCode.AUTH_EXPIRED_TOKEN || error_code === authApiErrorCode.AUTH_REQUIRED){
@@ -231,24 +231,25 @@ function Authentication(){
       return;
     }
     setIsLoading(true);
-    authMethodOAuthClientGet(oauthClientData.clientId, (_, response) => {
+    authMethodOAuthClientGet(oauthClientData.clientId).then((response) => {
+      setIsLoading(false);
+
       oauthClientData.displayAvatar = response["success"]["oauth_client"]["display"]["avatar"];
       oauthClientData.displayName = response["success"]["oauth_client"]["display"]["name"];
       if (oauthClientData.redirectUri === undefined){
         oauthClientData.redirectUri = response["success"]["oauth_client"]["redirect_uri"];
-
         setError("Invalid redirect_uri! redirect_uri not given.")
       }
 
       if (oauthClientData.redirectUri !== response["success"]["oauth_client"]["redirect_uri"]){
         if (response["success"]["oauth_client"]["redirect_uri"]) setError("Invalid redirect_uri! Mismatch with OAuth client settings.")
       }
-      setIsLoading(false);
+
       requestUser();
-    }, (_, error) => {
+    }).catch((error) => {
       setIsLoading(false);
       if (oauthClientData.clientId !== undefined){
-        setApiError(error["error"]);
+        if (error && "error" in error) setApiError(error["error"]);
       }else{
         requestUser();
       }
@@ -278,7 +279,7 @@ function Authentication(){
             requests access to your Florgon account
             </Card.Title>
           <Card.Text>
-            <div><b>Note! <i>Application will have full access to your account!</i></b></div>
+            <br/><b>Note! <i>Application will have full access to your account!</i></b>
             
             You will be redirected to <a href={oauthClientData.redirectUri}>{oauthClientData.redirectUri}</a>.
           </Card.Text>

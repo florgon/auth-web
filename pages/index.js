@@ -6,7 +6,7 @@ import {
     _authMethodSessionGetUserInfo, _authMethodSessionSignin, _authMethodSessionSignup, authMethodOAuthClientGet,
     _authMethodOAuthAllowClient,
     authApiErrorCode, authApiGetErrorMessageFromCode 
-} from '../components/florgon-auth-api';
+} from '@kirillzhosul/florgon-auth-api';
 
 export default function Home({ query }) {
   return (<>

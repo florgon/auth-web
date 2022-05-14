@@ -46,10 +46,10 @@
   resolved "https://registry.yarnpkg.com/@humanwhocodes/object-schema/-/object-schema-1.2.1.tgz#b520529ec21d8e5945a1851dfd1c32e94e39ff45"
   integrity sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==
 
-"@kirillzhosul/florgon-auth-api@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@kirillzhosul/florgon-auth-api/-/florgon-auth-api-4.0.0.tgz#69aa74988105743a75112c78e62f5173f7cf54b8"
-  integrity sha512-+TXdPSfhxsTcA6gVlLnHWO6O4Of0w0Y4LZ5UX23XZNyUD9Y97qvI8w6J2DJ/KJwGVoK+Bj0ATWHWS+lpvcjRdg==
+"@kirillzhosul/florgon-auth-api@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@kirillzhosul/florgon-auth-api/-/florgon-auth-api-0.2.0.tgz#9c42f99d2652fc4c73985e32696e7241e2cb180b"
+  integrity sha512-ixfmBqljvMU9CBm5Rlt3haO2+a9RDB6IyUGhPc9CqHoP+MFJe2j09tutYpLFKm9OjkkzA5flvhXcALsWcy9zyw==
 
 "@next/env@12.1.6":
   version "12.1.6"

@@ -88,7 +88,7 @@ function Authentication({query}){
             if (error && "error" in error) return setApiError(error["error"]);
             setError("Failed to allow access for client, due to unexpected error!")
         });
-    }, []);
+    }, [getSessionToken, oauthClientData, setIsLoading, setError, setApiError]);
 
     const onDisallowAccess = useCallback(() => {
         switch(oauthClientData.responseType){

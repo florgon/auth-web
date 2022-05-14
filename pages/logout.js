@@ -13,7 +13,7 @@ export default function Logout() {
             "path": "/"
         });
         window.location.replace("/");
-    }, [])
+    }, [removeCookie])
 
     return (<>
         <Head>

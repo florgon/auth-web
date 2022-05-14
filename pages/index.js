@@ -145,7 +145,7 @@ function Authentication({query}){
             setSignFormError("Failed to sign-in because of unexpected error!");
             console.error(error)
         })
-    }, [applySessionToken, setSignFormError, setIsLoading, signFormLogin, signFormPassword, setSignMethod, fetchUser]);
+    }, [applySessionToken, setSignFormError, setIsLoading, signFormLogin, signFormPassword, fetchUser]);
 
     const onSignup = useCallback(() => {
         if (signFormUsername === "") return setSignFormError("Please enter username!");
@@ -205,7 +205,7 @@ function Authentication({query}){
             if (error && "error" in error) return setApiError(error["error"]);
             setError("Failed to fetch OAuth client because of unexpected error!")
         })
-    }, [setIsLoading, setApiError, setError, cookies, oauthClientData]);
+    }, [setIsLoading, setApiError, setError, cookies, oauthClientData, fetchUser]);
 
     // Handle error messages.
     if (apiError) return (<div className="display-5 text-danger">

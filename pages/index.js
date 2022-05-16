@@ -42,7 +42,8 @@ function Authentication({query}){
 
     const [user, setUser] = useState(undefined);
     const [isLoading, setIsLoading] = useState(true);
-
+    const [isRedirecting, setIsRedirecting] = useState(false);
+    const [redirectTo, setRedirectTo] = useState("/")
     const [signMethod, setSignMethod] = useState("signin");
 
     const [signFormError, setSignFormError] = useState(undefined);
@@ -84,13 +85,16 @@ function Authentication({query}){
         const oauthAllowClientParams = [getSessionToken(), oauthClientData.clientId, oauthClientData.state, oauthClientData.redirectUri, oauthClientData.scope, oauthClientData.responseType]
         setIsLoading(true);
         _authMethodOAuthAllowClient(...oauthAllowClientParams).then((response) => {
-            window.location.href = response["success"]["redirect_to"];
+            setRedirectTo(response["success"]["redirect_to"]);
+            window.location.href = response["success"]["redirect_to"]
+            setIsRedirecting(true);
+            setIsLoading(false)
         }).catch((error) => {
             setIsLoading(false);
             if (error && "error" in error) return setApiError(error["error"]);
             setError("Failed to allow access for client, due to unexpected error!")
         });
-    }, [getSessionToken, oauthClientData, setIsLoading, setError, setApiError]);
+    }, [getSessionToken, oauthClientData, setIsLoading, setError, setApiError, setRedirectTo, setIsRedirecting]);
 
     const onDisallowAccess = useCallback(() => {
         switch(oauthClientData.responseType){
@@ -231,7 +235,10 @@ function Authentication({query}){
 
     /// Other messages.
     if (isLoading) return <div>Loading...</div>;
-
+    if (isRedirecting) return <>
+    <h3>You are being redirected to authorized application...</h3>
+    <small>If your browser does not redirects you, please click <a href={redirectTo}>here</a></small>
+    </>
     const redirectUriDomain = (oauthClientData.redirectUri) ? new URL(oauthClientData.redirectUri).hostname : undefined
     return (<div>
         <Container className="w-75">

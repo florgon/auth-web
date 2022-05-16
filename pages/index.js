@@ -36,7 +36,6 @@ function Authentication({query}){
 
     // Usings.
     const [cookies, setCookie] = useCookies([process.env.NEXT_PUBLIC_SESSION_TOKEN_COOKIE_NAME])
-
     // States.
     const [apiError, setApiError] = useState(undefined);
     const [error, setError] = useState(undefined);
@@ -53,6 +52,7 @@ function Authentication({query}){
     const [signFormPassword, setSignFormPassword] = useState("");
     const [signFormPasswordConfirmation, setSignFormPasswordConfirmation] = useState("");
 
+    const [oauthRequestedPermissions, setOauthRequestedPermissions] = useState([])
     const [oauthClientData] = useState({
         displayName: undefined,
         displayAvatar: undefined,
@@ -192,6 +192,16 @@ function Authentication({query}){
             return setError("Invalid redirect_uri! redirect_uri not given.");
         }
 
+        if (
+            !(oauthClientData.redirectUri.startsWith("http://")) &&
+            !(oauthClientData.redirectUri.startsWith("https://"))){
+            oauthClientData.redirectUri = `http://${oauthClientData.redirectUri}`;
+        }
+        try{new URL(oauthClientData.redirectUri)}catch{
+            return setError("Invalid redirect_uri! Redirect uri should contain VALID URL.");
+        }
+
+        setOauthRequestedPermissions(oauthClientData.scope.split(","))
         setIsLoading(true);
         authMethodOAuthClientGet(oauthClientData.clientId).then((response) => {
             setIsLoading(false);
@@ -218,21 +228,32 @@ function Authentication({query}){
     /// Other messages.
     if (isLoading) return <div>Loading...</div>;
 
-    const redirect_uri_domain = (oauthClientData.redirectUri) ? new URL(oauthClientData.redirectUri).hostname : undefined
+    const redirectUriDomain = (oauthClientData.redirectUri) ? new URL(oauthClientData.redirectUri).hostname : undefined
     return (<div>
         <Container>
-            <Card border="warning" className="mb-5 shadow-sm mx-auto">
+            <Card className="mb-5 shadow-sm mx-auto">
             <Card.Body>
                 <Card.Title as="h2">
-                {oauthClientData.displayAvatar && <div><img src={oauthClientData.displayAvatar} alt="Display avatar"/></div>}
-                {oauthClientData.displayName && <><b>{oauthClientData.displayName}</b>&nbsp;</>}
-                {!oauthClientData.displayName && <><a href={oauthClientData.redirectUri}>{redirect_uri_domain}</a>&nbsp;</>}
-                requests access to your Florgon account
+                    {oauthClientData.displayAvatar && <div><img src={oauthClientData.displayAvatar} alt="Display avatar"/></div>}
+                    <b>{oauthClientData.displayName}</b> requests access to your <b>Florgon</b> account.
                 </Card.Title>
                 <Card.Text>
-                <br/><b>Note! <i>Application will have full access to your account!</i></b>
-                {" "}
-                You will be redirected to <a href={oauthClientData.redirectUri}>{oauthClientData.redirectUri}</a>.
+                    <hr/>
+                    <p>
+                        <i>Application will have access to:</i>
+                        <br/>
+                        <div>- <b className="text-primary">Account information (Including email)</b></div>
+                        {oauthRequestedPermissions.map((oauthRequestedPermission) => {
+                            switch(oauthRequestedPermission){
+                                case "oauth_clients":
+                                    return (
+                                        <div>- <b className="text-primary">OAuth clients (Including destructive actions)</b></div>
+                                    )
+                            }
+                        })}
+                    </p>
+                    <hr/>
+                <small>Authorizing will redirect to <b><a disabled>{redirectUriDomain}</a></b>.</small>
                 </Card.Text>
             </Card.Body>
             </Card>

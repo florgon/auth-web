@@ -6,7 +6,7 @@ export default function Navbar(){
         <BootstrapNavbar bg="light" expand="sm" className="border-bottom container-fluid navbar shadow-sm">
             <Container fluid>
             <BootstrapNavbar.Brand href="/">
-                Florgon Auth
+                Florgon OAuth
             </BootstrapNavbar.Brand>
             <BootstrapNavbar.Collapse id="navbarCollapse">
                 <BootstrapNav className="justify-content-end" style={{ width: "100%" }}>
@@ -17,5 +17,4 @@ export default function Navbar(){
             </Container>
         </BootstrapNavbar>
     )
-    z
 }

@@ -63,7 +63,9 @@ function Authentication({query}){
         responseType: query["response_type"] || undefined,
 
         state: query["state"] || undefined,
-        scope: query["scope"] || undefined
+        scope: query["scope"] || undefined,
+        
+        isVerified: undefined
     })
 
     const applySessionToken = useCallback((sessionToken) =>{
@@ -158,7 +160,7 @@ function Authentication({query}){
         setSignFormError(undefined);
         setIsLoading(true);
 
-        _authMethodSessionSignup(signFormUsername, signFormEmail, signFormPassword).then((_, response) => {
+        _authMethodSessionSignup(signFormUsername, signFormEmail, signFormPassword).then((response) => {
             applySessionToken(response["success"]["session_token"]);
             fetchUser();
         }).catch((error) => {
@@ -208,10 +210,12 @@ function Authentication({query}){
 
             oauthClientData.displayAvatar = response["success"]["oauth_client"]["display"]["avatar"];
             oauthClientData.displayName = response["success"]["oauth_client"]["display"]["name"];
+            oauthClientData.isVerified = response["success"]["oauth_client"]["states"]["is_verified"];
 
             fetchUser();
         }).catch((error) => {
             setIsLoading(false);
+            console.error(error)
             if (error && "error" in error) return setApiError(error["error"]);
             setError("Failed to fetch OAuth client because of unexpected error!")
         })
@@ -236,6 +240,9 @@ function Authentication({query}){
                 <Card.Title as="h2">
                     {oauthClientData.displayAvatar && <div><img src={oauthClientData.displayAvatar} alt="Display avatar"/></div>}
                     <b>{oauthClientData.displayName}</b> requests access to your <b>Florgon</b> account.
+                    <br/>
+                    {!oauthClientData.isVerified && <span className="text-danger">(Application not verified by Florgon)</span>}
+                    {oauthClientData.isVerified && <span className="text-success">(Application verified by Florgon)</span>}
                 </Card.Title>
                 <Card.Text>
                     <hr/>
@@ -253,12 +260,12 @@ function Authentication({query}){
                         })}
                     </p>
                     <hr/>
-                <small>Authorizing will redirect to <b><a disabled>{redirectUriDomain}</a></b>.</small>
+                    <small>Authorizing will redirect to <b><a disabled>{redirectUriDomain}</a></b>.</small>
                 </Card.Text>
             </Card.Body>
             </Card>
         </Container>
-        <Container>
+        <Container className="mb-5">
             <Row className="w-75 mx-auto">
             {signMethod === "accept" && <Col>
                 <Card className="shadow-sm">
@@ -328,6 +335,12 @@ function Authentication({query}){
                 </Card>
             </Col>}
             </Row>
+            <div className="mt-3">
+                <Link href="https://dev.florgon.space/oauth">Learn more about Florgon OAuth</Link><br/>
+                <Link href="https://florgon.space/legal/privacy-policy">Privacy policy</Link><br/>
+                <Link href="mailto: support@florgon.space">support@florgon.space</Link>
+            </div>
+            
         </Container>
     </div>);
 }

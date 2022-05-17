@@ -207,7 +207,10 @@ function Authentication({query}){
             return setError("Invalid redirect_uri! Redirect uri should contain VALID URL.");
         }
 
-        setOauthRequestedPermissions(oauthClientData.scope.split(","))
+        if (oauthClientData.scope){
+            setOauthRequestedPermissions(oauthClientData.scope.split(","))
+        }
+        
         setIsLoading(true);
         authMethodOAuthClientGet(oauthClientData.clientId).then((response) => {
             setIsLoading(false);

@@ -86,7 +86,7 @@ function Authentication({query}){
         setIsLoading(true);
         _authMethodOAuthAllowClient(...oauthAllowClientParams).then((response) => {
             setRedirectTo(response["success"]["redirect_to"]);
-            window.location.href = response["success"]["redirect_to"]
+            window.location.href = response["success"]["redirect_to"];
             setIsRedirecting(true);
             setIsLoading(false)
         }).catch((error) => {
@@ -257,12 +257,16 @@ function Authentication({query}){
                     <p>
                         <i>Application will have access to:</i>
                         <br/>
-                        <div>- <b className="text-primary">Account information (Including email)</b></div>
+                        <div>- <b className="text-primary">Account information {oauthRequestedPermissions.includes("email") ? "(Including email)" :"(Not including email)" }</b></div>
                         {oauthRequestedPermissions.map((oauthRequestedPermission) => {
                             switch(oauthRequestedPermission){
                                 case "oauth_clients":
                                     return (
                                         <div>- <b className="text-primary">OAuth clients (Including destructive actions)</b></div>
+                                    )
+                                case "email":
+                                    return (
+                                        <div>- <b className="text-primary">Account email address</b></div>
                                     )
                             }
                         })}

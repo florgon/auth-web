@@ -260,12 +260,15 @@ function Authentication({query}){
                         <p>
                             <i>Application will have access to:</i><br/>
                             <div>- <b className="text-primary">Account information {oauthRequestedPermissions.includes("email") ? "(Including E-mail)" :"(Not including E-mail)" }</b></div>
+                            <div>- <b className="text-primary">Editing account information</b></div>
                             {oauthRequestedPermissions.map((oauthRequestedPermission) => {
                                 switch(oauthRequestedPermission){
                                     case "oauth_clients":
                                         return (<div>- <b className="text-primary">OAuth clients (Including destructive actions)</b></div>)
                                     case "email":
                                         return (<div>- <b className="text-primary">Account E-mail address</b></div>)
+                                    case "noexpire":
+                                        return (<div>- <b className="text-primary">Access at every time (even when you offline)</b></div>)
                             }})}
                         </p>
                         <hr/>

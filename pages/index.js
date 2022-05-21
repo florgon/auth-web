@@ -2,9 +2,9 @@ import Link from 'next/link'
 import { useState, useEffect, useCallback } from 'react';
 import { useCookies } from 'react-cookie';
 import { Container, Row, Col, Card, InputGroup, FormControl, Button} from 'react-bootstrap';
-import { 
-    _authMethodSessionGetUserInfo, _authMethodSessionSignin, _authMethodSessionSignup, authMethodOAuthClientGet,
-    _authMethodOAuthAllowClient,
+import {
+    authMethodOAuthClientGet,
+    authApiRequest,
     authApiErrorCode, authApiGetErrorMessageFromCode 
 } from '@kirillzhosul/florgon-auth-api';
 
@@ -82,9 +82,19 @@ function Authentication({query}){
     }, [cookies])
 
     const onAllowAccess = useCallback(() => {
-        const oauthAllowClientParams = [getSessionToken(), oauthClientData.clientId, oauthClientData.state, oauthClientData.redirectUri, oauthClientData.scope, oauthClientData.responseType]
+
+        // Request params.
+        const clientId = oauthClientData.clientId;
+        const sessionToken = getSessionToken();
+        const state = oauthClientData.state;
+        const redirectUri = oauthClientData.redirectUri;
+        const scope = oauthClientData.scope;
+        const responseType = oauthClientData.responseType;
+
+        // Building request.
+        const requestParams = `client_id=${clientId}&session_token=${sessionToken}&state=${state}&redirect_uri=${redirectUri}&scope=${scope}&response_type=${responseType}`
         setIsLoading(true);
-        _authMethodOAuthAllowClient(...oauthAllowClientParams).then((response) => {
+        authApiRequest("_oauth._allowClient", requestParams).then((response) => {
             setRedirectTo(response["success"]["redirect_to"]);
             window.location.href = response["success"]["redirect_to"];
             setIsRedirecting(true);
@@ -111,7 +121,8 @@ function Authentication({query}){
         const sessionToken = getSessionToken();
         if (sessionToken){
             setIsLoading(true);
-            _authMethodSessionGetUserInfo(sessionToken).then((response) => {
+            
+            authApiRequest("_session._getUserInfo", `session_token=${sessionToken}`).then((response) => {
                 setUser(response["success"]["user"]);
                 setIsLoading(false);
                 setSignMethod("accept");
@@ -137,7 +148,7 @@ function Authentication({query}){
 
         setSignFormError(undefined);
         setIsLoading(true);
-        _authMethodSessionSignin(signFormLogin, signFormPassword).then((response) => {
+        authApiRequest("_session._signin", `login=${signFormLogin}&password=${signFormPassword}`).then((response) => {
             applySessionToken(response["success"]["session_token"]);
             fetchUser();
         }).catch((error) => {
@@ -165,7 +176,7 @@ function Authentication({query}){
         setSignFormError(undefined);
         setIsLoading(true);
 
-        _authMethodSessionSignup(signFormUsername, signFormEmail, signFormPassword).then((response) => {
+        authApiRequest("_session._signup", `username=${signFormUsername}&email=${signFormEmail}&password=${signFormPassword}`).then((response) => {
             applySessionToken(response["success"]["session_token"]);
             fetchUser();
         }).catch((error) => {

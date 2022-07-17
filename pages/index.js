@@ -82,7 +82,6 @@ function Authentication({query}){
     }, [cookies])
 
     const onAllowAccess = useCallback(() => {
-
         // Request params.
         const clientId = oauthClientData.clientId;
         const sessionToken = getSessionToken();
@@ -220,7 +219,13 @@ function Authentication({query}){
         }
 
         if (oauthClientData.scope){
-            setOauthRequestedPermissions(oauthClientData.scope.split(","))
+            let permissions = undefined;
+            if (oauthClientData.scope.includes("*")){
+                permissions = ["edit", "sessions", "habits", "noexpire", "oauth_clients", "email", "admin", "gatey", "notes"];
+            }else{
+                permissions = oauthClientData.scope.split(",");
+            }
+            setOauthRequestedPermissions(permissions);
         }
         
         setIsLoading(true);
@@ -271,6 +276,7 @@ function Authentication({query}){
                         <p>
                             <i>Application will have access to:</i><br/>
                             <div>- <b className="text-primary">Account information {oauthRequestedPermissions.includes("email") ? "(Including E-mail)" :"(Not including E-mail)" }</b></div>
+                            
                             {oauthRequestedPermissions.map((oauthRequestedPermission) => {
                                 switch(oauthRequestedPermission){
                                     case "edit":
@@ -281,6 +287,18 @@ function Authentication({query}){
                                         return (<div>- <b className="text-primary">Access at every time (even when you offline)</b></div>)
                                     case "gatey":
                                         return (<div>- <b className="text-primary">Access to Gatey API</b></div>)
+                                    case "sessions":
+                                        return (<div>- <b className="text-primary">Sessions audit log</b></div>)
+                                    case "admin":
+                                        // TODO: Implement this.
+                                        if (false && !(user?.states?.is_admin)){
+                                            // Won`t be triggered because getting user by session token is not returns admin state (Even, no states).
+                                            break;
+                                        }
+                                        // TODO: Implement this
+                                        return (<div>- <b className="text-primary">Administrator terminal</b></div>)
+                                    case "habits":
+                                        return (<div>- <b className="text-primary">Access to Habits API</b></div>)
                                     case "notes":
                                         return (<div>- <b className="text-primary">Access to Notes API</b></div>)
                                     case "oauth_clients":

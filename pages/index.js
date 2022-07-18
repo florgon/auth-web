@@ -290,12 +290,9 @@ function Authentication({query}){
                                     case "sessions":
                                         return (<div>- <b className="text-primary">Sessions audit log</b></div>)
                                     case "admin":
-                                        // TODO: Implement this.
-                                        if (false && !(user?.states?.is_admin)){
-                                            // Won`t be triggered because getting user by session token is not returns admin state (Even, no states).
+                                        if (!(user?.states?.is_admin)){
                                             break;
                                         }
-                                        // TODO: Implement this
                                         return (<div>- <b className="text-primary">Administrator terminal</b></div>)
                                     case "habits":
                                         return (<div>- <b className="text-primary">Access to Habits API</b></div>)

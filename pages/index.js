@@ -221,7 +221,7 @@ function Authentication({query}){
         if (oauthClientData.scope){
             let permissions = undefined;
             if (oauthClientData.scope.includes("*")){
-                permissions = ["edit", "sessions", "habits", "noexpire", "oauth_clients", "email", "admin", "gatey", "notes", "ads", "cc", "konkursnik"];
+                permissions = ["edit", "sessions", "habits", "noexpire", "oauth_clients", "email", "admin", "gatey", "notes", "ads", "cc"];
             }else{
                 permissions = oauthClientData.scope.split(",");
             }
@@ -291,8 +291,6 @@ function Authentication({query}){
                                         return (<div>- <b className="text-primary">Access to Ads API</b></div>)
                                     case "cc":
                                         return (<div>- <b className="text-primary">Access to CC API</b></div>)
-                                    case "konkursnik":
-                                        return (<div>- <b className="text-primary">Access to Konkursnik API</b></div>)
                                     case "sessions":
                                         return (<div>- <b className="text-primary">Sessions audit log</b></div>)
                                     case "admin":

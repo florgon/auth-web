@@ -194,9 +194,9 @@ function Authentication({query}){
                 if (errorCode === authApiErrorCode.AUTH_EMAIL_INVALID){
                     return setSignFormError("Invalid E-mail!");
                 }
-                return setSignFormError("Failed to sign-in because of error: " + authApiGetErrorMessageFromCode(errorCode));
+                return setSignFormError("Failed to sign-up because of error: " + authApiGetErrorMessageFromCode(errorCode));
             }
-            setSignFormError("Failed to sign-in because of unexpected error!");
+            setSignFormError("Failed to sign-up because of unexpected error!");
         })
     }, [applySessionToken, setSignFormError, setIsLoading, signFormPassword, signFormPasswordConfirmation, signFormUsername, signFormEmail, fetchUser]);
 

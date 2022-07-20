@@ -221,7 +221,7 @@ function Authentication({query}){
         if (oauthClientData.scope){
             let permissions = undefined;
             if (oauthClientData.scope.includes("*")){
-                permissions = ["edit", "sessions", "habits", "noexpire", "oauth_clients", "email", "admin", "gatey", "notes", "ads", "cc"];
+                permissions = ["edit", "sessions", "habits", "noexpire", "oauth_clients", "email", "admin", "gatey", "notes", "ads", "cc", "security"];
             }else{
                 permissions = oauthClientData.scope.split(",");
             }
@@ -284,7 +284,7 @@ function Authentication({query}){
                                     case "email":
                                         return (<div>- <b className="text-primary">Account E-mail address</b></div>)
                                     case "noexpire":
-                                        return (<div>- <b className="text-primary">Access at every time (even when you offline)</b></div>)
+                                        return (<div>- <b className="text-primary">Access at every time, from another clients</b></div>)
                                     case "gatey":
                                         return (<div>- <b className="text-primary">Access to Gatey API</b></div>)
                                     case "ads":
@@ -304,6 +304,8 @@ function Authentication({query}){
                                         return (<div>- <b className="text-primary">Access to Notes API</b></div>)
                                     case "oauth_clients":
                                         return (<div>- <b className="text-primary">OAuth clients (Including destructive actions)</b></div>)
+                                    case "security":
+                                        return (<div>- <b className="text-primary">Security (2FA, Password recovery)</b></div>)
                             }})}
                         </p>
                         <hr/>

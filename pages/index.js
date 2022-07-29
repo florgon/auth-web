@@ -25,7 +25,7 @@ export function getServerSideProps({ query }) {
   
     return {
         redirect: {
-            destination: 'https://profile.florgon.space',
+            destination: 'https://florgon.space/profile',
             permanent: false,
         },
     }
